@@ -19,7 +19,7 @@ class KCSCasioFX502P:
         # Generate the text-to-byte lookup tokens
         self.TOKENS_T2B = {self.TOKENS_B2T[b]: b for b in self.TOKENS_B2T}
 
-    def save_prog(self, fname = None):
+    def save_prog(self, fname = None, gain = 1.0):
         """
         Read the binary data of an FX-502P program using KCSProtocol.
 
@@ -28,7 +28,7 @@ class KCSCasioFX502P:
         prog = deque()
         with KCSReader(fname, rate = self.rate, channels = self.channels,
                        bits = self.bits, base_freq = self.base_freq,
-                       parity = self.parity) as kcs:
+                       parity = self.parity, gain = gain) as kcs:
             # First wait for the lead-in
             if not kcs.wait_for_lead_in():
                 raise Exception("no FX502P lead-in")
@@ -52,13 +52,13 @@ class KCSCasioFX502P:
         # Return the program(s) object as bytes data
         return bytes(prog)
 
-    def load_prog(self, data, fname = None):
+    def load_prog(self, data, fname = None, volume = 1.0):
         """
         Write the binary data of an FX-502P program using KCSProtocol.
         """
         with KCSWriter(fname, rate = self.rate, channels = self.channels,
                        bits = self.bits, base_freq = self.base_freq,
-                       parity = self.parity) as kcs:
+                       parity = self.parity, volume = volume) as kcs:
             # Create the lead-in
             kcs.write_lead_in()
 

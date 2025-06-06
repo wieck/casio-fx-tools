@@ -11,6 +11,9 @@ def fx502p_load():
                         help = 'input data is binary')
     parser.add_argument('-o', '--output',
                         help = 'write WAV data to file instead of sound card')
+    parser.add_argument('-v', '--volume',
+                        help = 'when writing to sound card adjust volume',
+                        type = float, default = 1.0)
     parser.add_argument('input',
                         help = 'program data (text or binary)')
     args = parser.parse_args()
@@ -31,7 +34,7 @@ def fx502p_load():
 
     # Write it to the requested output (default sound card)
     try:
-        prog = fx.load_prog(progbin, args.output)
+        prog = fx.load_prog(progbin, args.output, volume = args.volume)
     except KeyboardInterrupt:
         sys.exit(1)
 
@@ -43,6 +46,9 @@ def fx502p_save():
                         help = 'output will be binary')
     parser.add_argument('-i', '--input',
                         help = 'use WAV file instead of sound card')
+    parser.add_argument('-g', '--gain',
+                        help = 'when reading from sound card add gain',
+                        type = float, default = 1.0)
     parser.add_argument('output', nargs = '?',
                         help = 'write to file instead of stdout')
     args = parser.parse_args()
@@ -50,7 +56,7 @@ def fx502p_save():
     # Get FX-502P binary data (either from file or sound card
     fx = KCSCasioFX502P()
     try:
-        prog = fx.save_prog(args.input)
+        prog = fx.save_prog(args.input, gain = args.gain)
     except KeyboardInterrupt:
         sys.exit(0)
 
@@ -80,6 +86,9 @@ def kcs_analyze():
         description = 'Save program(s) to text or binary file')
     parser.add_argument('-i', '--input',
                         help = 'use WAV file instead of sound card')
+    parser.add_argument('-g', '--gain',
+                        help = 'when reading from sound card add gain',
+                        type = float, default = 1.0)
     parser.add_argument('-p', '--parity',
                         help = 'use {even|odd} parity')
     parser.add_argument('-r', '--framerate',
@@ -102,7 +111,8 @@ def kcs_analyze():
 
     try:
         with KCSReader(args.input, rate = args.framerate,
-                       base_freq = args.basefreq, parity = parity) as kcs:
+                       base_freq = args.basefreq, parity = parity,
+                       gain = args.gain) as kcs:
             if not kcs.wait_for_lead_in():
                 print("no lead-in detected", file = sys.stderr)
                 sys.exit(1)

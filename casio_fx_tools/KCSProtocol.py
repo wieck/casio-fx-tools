@@ -26,13 +26,14 @@ class KCSReader:
     the default audio device.
     """
     def __init__(self, fname = None, rate = 48000, channels = 1, bits = 8,
-                 base_freq = KCS_BASE_FREQ, parity = None):
+                 base_freq = KCS_BASE_FREQ, parity = None, gain = 1.0):
         self.fname = fname
         self.framerate = rate
         self.sampwidth = bits
         self.nchannels = channels
         self.base_freq = base_freq
         self.parity    = parity
+        self.gain      = gain
 
         if self.fname is None:
             # Reading from the default audio device via sox(1)
@@ -68,7 +69,8 @@ class KCSReader:
 
     def _open_device(self, framerate = 44100, sampwidth = 1, nchannels = 1):
         cmd = ['rec', '-q', '-r', str(framerate), '-c', str(nchannels),
-               '-b', str(sampwidth * 8), '-t', 'raw', '-']
+               '-b', str(sampwidth * 8), '-t', 'raw', '-',
+               'gain', str(self.gain)]
         self.soxproc = subprocess.Popen(cmd, stdout = subprocess.PIPE,
                                         text = False)
 
@@ -205,13 +207,14 @@ class KCSWriter:
     the default audio device.
     """
     def __init__(self, fname = None, rate = 48000, channels = 1, bits = 8,
-                 base_freq = KCS_BASE_FREQ, parity = None):
+                 base_freq = KCS_BASE_FREQ, parity = None, volume = 1.0):
         self.fname = fname
         self.framerate = rate
         self.sampwidth = bits
         self.nchannels = channels
         self.base_freq = base_freq
         self.parity    = parity
+        self.volume    = volume
 
         # create square wave patterns for zero and one bits. fphw is the
         # number of frames per half wave. 
@@ -254,7 +257,7 @@ class KCSWriter:
         # By default we use 48000 Hz mono 8-bit unsigned PCM
         cmd = ['play', '-q', '-r', str(self.framerate), '-e', 'unsigned',
                '-c', str(self.nchannels), '-b', str(self.sampwidth),
-               '-t', 'raw', '-']
+               '-t', 'raw', '-v', str(self.volume), '-']
         self.soxproc = subprocess.Popen(cmd, stdin = subprocess.PIPE,
                                         text = False)
 
