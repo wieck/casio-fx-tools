@@ -30,11 +30,11 @@ def fx502p_load():
 
     # If we read text, convert it into binary program data
     if not args.binary:
-        progbin = fx.text2prog(progtxt)
+        progbin = fx.text2bytes(progtxt)
 
     # Write it to the requested output (default sound card)
     try:
-        prog = fx.load_prog(progbin, args.output, volume = args.volume)
+        prog = fx.load_bytes(progbin, args.output, volume = args.volume)
     except KeyboardInterrupt:
         sys.exit(1)
 
@@ -56,7 +56,7 @@ def fx502p_save():
     # Get FX-502P binary data (either from file or sound card
     fx = KCSCasioFX502P()
     try:
-        prog = fx.save_prog(args.input, gain = args.gain)
+        data = fx.save_bytes(args.input, gain = args.gain)
     except KeyboardInterrupt:
         sys.exit(0)
 
@@ -65,13 +65,14 @@ def fx502p_save():
     if args.binary:
         if args.output is None:
             # Binary data to stdout
-            sys.stdout.buffer.write(prog)
+            sys.stdout.buffer.write(data)
         else:
             # Binary data to file
             with open(args.output, 'wb') as out:
-                out.write(prog)
+                out.write(data)
     else:
-        text = fx.prog2text(prog)
+        text = fx.bytes2text(data)
+
         if args.output is None:
             # Text data to stdout
             sys.stdout.write(text)

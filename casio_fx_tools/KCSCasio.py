@@ -5,6 +5,8 @@ KCSCasio.py
 from collections import deque
 from itertools import islice
 import sys
+import math
+import re
 from casio_fx_tools.KCSProtocol import *
 
 class KCSCasioFX502P:
@@ -19,13 +21,13 @@ class KCSCasioFX502P:
         # Generate the text-to-byte lookup tokens
         self.TOKENS_T2B = {self.TOKENS_B2T[b]: b for b in self.TOKENS_B2T}
 
-    def save_prog(self, fname = None, gain = 1.0):
+    def save_bytes(self, fname = None, gain = 1.0):
         """
         Read the binary data of an FX-502P program using KCSProtocol.
 
         Returns a bytes object of the binary program data.
         """
-        prog = deque()
+        raw_bytes = deque()
         with KCSReader(fname, rate = self.rate, channels = self.channels,
                        bits = self.bits, base_freq = self.base_freq,
                        parity = self.parity, gain = gain) as kcs:
@@ -35,24 +37,25 @@ class KCSCasioFX502P:
 
             # Next wait for [0x00, 0xb0] indicating program data
             byteseq = kcs.generate_bytes()
-            self._wait_for_00b0(byteseq)
+            start, sbytes = self._wait_for_start(byteseq)
 
             # Collect bytes until we encounter a sequence of 0xFF
             # bytes. The FX502P writes a ton of them, but we don't
             # need to count them all.
             sample = deque(maxlen = 8)
-            sample.extend(islice(byteseq, 7))
+            sample.extend(sbytes)
+            sample.extend(islice(byteseq, 5))
             endmark = deque([0xff] * 8)
             for byte in byteseq:
                 sample.append(byte)
                 if sum(sample) == 2040:
                     break
-                prog.append(sample.popleft())
+                raw_bytes.append(sample.popleft())
 
         # Return the program(s) object as bytes data
-        return bytes(prog)
+        return bytes(raw_bytes)
 
-    def load_prog(self, data, fname = None, volume = 1.0):
+    def load_bytes(self, data, fname = None, volume = 1.0):
         """
         Write the binary data of an FX-502P program using KCSProtocol.
         """
@@ -62,75 +65,245 @@ class KCSCasioFX502P:
             # Create the lead-in
             kcs.write_lead_in()
 
-            # Write the program-data header
-            kcs.write_bytes([0x00, 0xb0])
-
             # Write the data of the program(s)
             kcs.write_bytes(data)
 
             # Write the lead-out (a sequence of 0xff bytes)
             kcs.write_bytes([0xff] * 50)
 
-    def prog2text(self, data):
-        output = ""
-        line = []
-        for byte in data:
-            if int(byte) in self.TOKENS_B2T:
-                token = self.TOKENS_B2T[int(byte)]
-            else:
-                token = '0x{0:02X}'.format(int(byte))
-            if token[-1] == ':':
-                if len(line) > 0:
+    def bytes2text(self, data):
+        # Convert the first two bytes into the BCD encoded header bytes.
+        start = "{0:02X}{1:02X}".format(data[1], data[0])
+
+        if start[0] == 'B':
+            # The header indicates a program. Emit the proper 'FPnnn' header.
+            output = "FP" + start[1:]
+
+            # Decode the remaining bytes as programe text.
+            line = []
+            for byte in data[2:]:
+                # If there is a token for this byte value, use it.
+                # Otherwise convert it into a hex number (There are
+                # tokens for all 256 possible byte values, but just
+                # in case).
+                if int(byte) in self.TOKENS_B2T:
+                    token = self.TOKENS_B2T[int(byte)]
+                else:
+                    token = '0x{0:02X}'.format(int(byte))
+
+                # If the token ends in ':' we do a bit of special formatting
+                if token[-1] == ':':
+                    if len(line) > 0:
+                        output += '\n    ' + ' '.join(line)
+                        line = []
+                    output += '\n'
+                    if token[0] == 'P':
+                        output += '' + token
+                    else:
+                        output += '  ' + token
+                else:
+                    line.append(token)
+
+                # Break up lines so they don't exceed 80 characters
+                if len(' '.join(line)) >= 70:
                     output += '\n    ' + ' '.join(line)
                     line = []
-                if len(output) > 0:
-                    output += '\n'
-                if token[0] == 'P':
-                    output += '' + token
-                else:
-                    output += '  ' + token
-            else:
-                line.append(token)
 
-            if len(' '.join(line)) >= 70:
+            # Emit anything left in the decoded line.
+            if len(line) > 0:
                 output += '\n    ' + ' '.join(line)
-                line = []
-                       
-        if len(line) > 0:
-            output += '\n    ' + ' '.join(line)
+
+        elif start[0] == 'F':
+            # The header indicates memory data. Emit the 'F nnn' header.
+            output = "F " + start[1:] + '\n'
+            data = data[2:]
+
+            # Decode and add all non-zero registers to the output.
+            for mem in self.MEMORY_SEQ:
+                num = islice(data, 8)
+                data = data[8:]
+                outnum = self._bytes2number(num)
+                if outnum != '0.0':
+                    output = output + mem + ': ' + outnum + '\n'
+        else:
+            # Didn't recognize what this byte stream means.
+            raise Exception("unrecognized FX502P data header '{0}'", start)
             
         return output + '\n'
 
-    def text2prog(self, txt):
-        prog = deque()
+    def _bcd2digits(self, bcd):
+        return "{0:02X}".format(bcd)
+
+    def _bytes2number(self, data):
+        # Convert an FX502P number into something readable
+        # We first consume the BCD encoded exponent and the binary flags
+        exponent = int(self._bcd2digits(next(data)))
+        flags = next(data)
+
+        # Next we consume the 6 BCD encoded bytes. Those make up 10 decimal
+        # digits in reverse byte order and the first and last nibble ignored.
+        # Yes, that is a rather strange storage format. We convert that into
+        # float value representing the mantissa.
+        digits = ""
+        for byte in data:
+            digits = self._bcd2digits(byte) + digits
+        digits = (digits[1] + '.' + digits[2:])
+        val = float(digits)
+
+        # Apply the negative flag
+        if flags & 0x08:
+            val = -val
+
+        # Add the exponent depending on exponent sign and convert
+        # it all to float and back to string to make it most readable.
+        if flags & 0x01:
+            return str(float(str(val) + 'e' + str(exponent)))
+        else:
+            return str(float(str(val) + 'e-' + str(100 - exponent)))
+
+    def _line_gen(self, txt):
+        # generate lines from a multi-line string
+        for line in txt.split('\n'):
+            line = line.strip()
+            if line == "" or line[0] == '#':
+                continue
+            yield line
+
+    def text2bytes(self, txt):
+        """
+        Convert a program text into FX502P bytes
+        """
+        data = deque()
         es = ""
         e = 0
         l = 0
-        for line in txt.split('\n'):
-            l += 1
-            toks = line.split()
-            if len(toks) == 0 or toks[0].startswith('#'):
-                continue
-            for tok in toks:
-                if tok not in self.TOKENS_T2B:
-                    es += "line {0}: unrecognized token '{1}'\n".format(l, tok)
+
+        # Get a line generator
+        lines = self._line_gen(txt)
+
+        # The first line for FX502P data is supposed to be
+        # 'FPnnn' for program data and 'F nnn' for memory
+        # data where 'nnn' is the 3-digits entered at SAVE.
+        header = next(lines)
+        m = re.match('^(F[P ])(\d\d\d)$', header)
+        if m is None:
+            raise Exception("no FX502P header in '{0}'".format(header))
+
+        # Handle Program text
+        if m.group(1) == 'FP':
+            # Create the binary program header
+            data.append(int(m.group(2)[1:], 16))
+            data.append(int('B' + m.group(2)[0], 16))
+
+            # Turn the remaining input into tokens and then into bytes
+            for line in lines:
+                toks = line.split()
+                for tok in toks:
+                    if tok not in self.TOKENS_T2B:
+                        es += "line {0}: unrecognized token '{1}'\n".format(l, tok)
+                        e += 1
+                    else:
+                        data.append(self.TOKENS_T2B[tok])
+
+        # Handle Memory Register text
+        elif m.group(1) == 'F ':
+            data.append(int(m.group(2)[1:], 16))
+            data.append(int('F' + m.group(2)[0], 16))
+
+            # Initialize an array with all registers set to 0.0
+            registers = {m: 0.0 for m in self.MEMORY_SEQ}
+
+            for line in lines:
+                # Process all the lines and change the register values
+                m = re.match('^([^:]*):\s*(.*)', line)
+                if m is None:
+                    es += "line {0}: invalid format '{1}'\n".format(l, line)
                     e += 1
-                else:
-                    prog.append(self.TOKENS_T2B[tok])
+                    continue
+
+                # Convert the register name and value
+                reg = m.group(1)
+                try:
+                    val = float(m.group(2))
+                except Exception as ex:
+                    ex += "line {0}:" + str(ex) + '\n'
+                    e += 1
+                    continue
+
+                # Check that we know this register name
+                if reg not in registers:
+                    es += "line {0}: unknown register '{1}'\n".format(l, reg)
+                    e += 1
+                    continue
+
+                # Change the value of the register to what we read
+                registers[reg] = val
+
+            # We have the full array of register values now.
+            for reg in self.MEMORY_SEQ:
+                data.extend(self._float2bytes(registers[reg]))
+
+        else:
+            raise Exception("no FX502P header in '{0}'".format(header))
+
         if e > 0:
             raise Exception(es + "{0} error(s) parsing program text".format(e))
         
-        return bytes(prog)
+        return bytes(data)
         
-    def _wait_for_00b0(self, byteseq):
+    def _float2bytes(self, val):
+        if val == 0.0:
+            return deque([0, 0, 0, 0, 0, 0, 0, 0])
+
+        result = deque()
+        flags = 0x00
+
+        # Convert the value into %1.9e format and split it via regexp
+        strval = "{0:1.9e}".format(val)
+        m = re.match('(-?)(\d)\.(\d*)e([-\+])(\d*)', strval)
+
+        # Set flag if mantissa is negative
+        if m.group(1) == '-':
+            flags |= 0x08
+
+        # Set flag and add exponent depending on sign of exponent
+        if m.group(4) == '+':
+            flags |= 0x01
+            result.append(int("{0:02d}".format(int(m.group(5))), 16))
+        else:
+            result.append(int("{0:02d}".format(100 - int(m.group(5))), 16))
+        
+        # Add the flag byte
+        result.append(flags)
+
+        # Add the mantissa digits
+        digits = '0' + m.group(2) + m.group(3) + '0'
+        for i in [10, 8, 6, 4, 2, 0]:
+            result.append(int(digits[i:i + 2], 16))
+
+        return result
+
+    def _wait_for_start(self, byteseq):
+        # Wait for a valid FX502P start header. The start header consists
+        # of 0xBnnn for a program or 0xFnnn for memory data, but in reverse
+        # byte order and BCD encoded. So a program with header number 123
+        # will be represented as 0x23, 0xB1.
         sample = deque(maxlen = 2)
         sample.extend(islice(byteseq, 1))
 
         for byte in byteseq:
             sample.append(byte)
-            if sample == deque([0x00, 0xb0]):
-                return True
-        raise Exception("no 0x00b0 Prog start found")
+            start = "{0:02X}{1:02X}".format(sample[1], sample[0])
+            m = re.match('^[BF]\d\d\d', start)
+            if m is not None:
+                return start, bytes(sample)
+        raise Exception("no valid start sequence found")
+
+    MEMORY_SEQ = [
+        'MF', 'M9', 'M8', 'M7', 'M6', 'M5',
+        'M4', 'M3', 'M2', 'M1', 'M0',
+        'M1F', 'M19', 'M18', 'M17', 'M16', 'M15',
+        'M14', 'M13', 'M12', 'M11', 'M10']
 
     TOKENS_B2T = {
         0x00:   'P0:',
