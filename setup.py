@@ -11,8 +11,9 @@ setup(
     packages = ['casio_fx_tools'],
     entry_points = {
         'console_scripts': [
-            'fx502p_load = casio_fx_tools.cmdline:fx502p_load',
-            'fx502p_save = casio_fx_tools.cmdline:fx502p_save',
+            'fx502p_load = casio_fx_tools.KCSCmdline:fx502p_load',
+            'fx502p_save = casio_fx_tools.KCSCmdline:fx502p_save',
+            'kcs_analyze = casio_fx_tools.KCSCmdline:kcs_analyze',
         ]
     }
 )

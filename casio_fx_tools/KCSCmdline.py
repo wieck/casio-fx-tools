@@ -1,6 +1,7 @@
 import sys
 import argparse
 from casio_fx_tools.KCSCasio import *
+from casio_fx_tools.KCSProtocol import *
 
 def fx502p_load():
     # Parse command line
@@ -73,3 +74,40 @@ def fx502p_save():
             with open(args.output, 'w') as out:
                 out.write(text)
 
+def kcs_analyze():
+    # Parse command line
+    parser = argparse.ArgumentParser(prog = 'fx502p_save',
+        description = 'Save program(s) to text or binary file')
+    parser.add_argument('-i', '--input',
+                        help = 'use WAV file instead of sound card')
+    parser.add_argument('-p', '--parity',
+                        help = 'use {even|odd} parity')
+    parser.add_argument('-r', '--framerate',
+                        help = 'sampling rate (default 48000Hz)',
+                        type = int, default = 48000)
+    parser.add_argument('-f', '--basefreq',
+                        help = 'base frequence (default 2400Hz)',
+                        type = int, default = 2400)
+    args = parser.parse_args()
+
+    if args.parity is None:
+        parity = None
+    elif args.parity == 'even':
+        parity = KCS_PARITY_EVEN
+    elif args.parity == 'odd':
+        parity = KCS_PARITY_ODD
+    else:
+        print("unknown parity '{0}'".format(args.parity), file = sys.stderr)
+        sys.exit(2)
+
+    try:
+        with KCSReader(args.input, rate = args.framerate,
+                       base_freq = args.basefreq, parity = parity) as kcs:
+            if not kcs.wait_for_lead_in():
+                print("no lead-in detected", file = sys.stderr)
+                sys.exit(1)
+            for byte in kcs.generate_bytes():
+                print("0x{0:02X} ".format(byte), end = "")
+                sys.stdout.flush()
+    except KeyboardInterrupt:
+        print("")
