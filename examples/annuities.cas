@@ -1,0 +1,46 @@
+FP000
+
+# A set of FX-502P programs for calculating annuities
+
+# Solve for Payment
+P0:
+	# Calculate factors
+	GSB-P9
+	# Compound interest on the Present Value for the duration
+	MR1 * MR18
+	# Subtract the desired Future Value
+	- MR2 =
+	# Divide by the annuity factor
+	/ MR19 =
+	# Store as Payment
+	Min5
+
+# Solve for Future Value
+P1:
+	# Calculate factors
+	GSB-P9
+	# Compound interest on the Present Value for the duration
+	MR1 * MR18
+	# Subtract the amount that will be paid back by the payments
+	- MR5 * MR19 =
+	# Store as Future value
+	Min2
+
+# Solve for Present Value
+P2:
+	# Calculate factors
+	GSB-P9
+	# Calculate future value of payments
+	MR5 * MR19
+	# Devide by compound interest factor to get PV
+	/ MR18 =
+	# Store as PV
+	Min1
+
+# Calculate factors
+P9:
+	# Calculate compounding factor
+	( MR4 / 1 0 0 + 1 ) X^Y MR3 = Min18
+
+	# Calculate the annuity factor
+	( ( ( MR4 / 1 0 0 + 1 ) X^Y MR3 - 1 ) / ( MR4 / 1 0 0 ) ) = Min19
