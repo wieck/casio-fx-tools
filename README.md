@@ -16,7 +16,7 @@ variations of it.
 * [FX-502P Load Programs from File](#fx-502p-load-programs-from-file)
 * [FX-502P Program Tokens](#fx-502p-program-tokens)
 * [FX-502P Wire Protocol](#fx-502p-wire-protocol)
-* [Recognition](#recognition)
+* [Credits](#credits)
 
 ## Supported Calculators
 
@@ -47,7 +47,7 @@ The command `fx502p_save` can read a .WAV file or directly from the
 sound card and save the program(s) to a file or stdout. 
 ```
 $ fx502p_save -h
-usage: fx502p_save [-h] [-b] [-i INPUT] [output]
+usage: fx502p_save [-h] [-b] [-i INPUT] [-g GAIN] [output]
 
 Save program(s) to text or binary file
 
@@ -59,6 +59,7 @@ optional arguments:
   -b, --binary          output will be binary
   -i INPUT, --input INPUT
                         use WAV file instead of sound card
+  -g GAIN, --gain GAIN  when reading from sound card add gain
 ```
 
 Without any options or arguments it will read from the sound card and
@@ -93,7 +94,7 @@ the equivalend .WAV audio file or send it directly to the sound card.
 
 ```
 $ fx502p_load -h
-usage: fx502p_load [-h] [-b] [-o OUTPUT] input
+usage: fx502p_load [-h] [-b] [-o OUTPUT] [-v VOLUME] input
 
 Load program(s) from text or binary data
 
@@ -105,6 +106,8 @@ optional arguments:
   -b, --binary          input data is binary
   -o OUTPUT, --output OUTPUT
                         write WAV data to file instead of sound card
+  -v VOLUME, --volume VOLUME
+                        when writing to sound card adjust volume```
 ```
 
 The *input* filename is mandatory. 
@@ -414,7 +417,7 @@ a `[0x00, 0xB0]` byte sequence, the tokens for each program (starting
 with `P0:..P9`) and finally a series of `0xFF` bytes signaling EOF.
 
 
-## Recognition
+## Credits
 
 Some of the code, specifically the decoding of audio, has been
 heavily influenced (AKA copied) from the
