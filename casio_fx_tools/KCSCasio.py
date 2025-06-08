@@ -19,7 +19,8 @@ class KCSCasioFX502P:
         self.parity    = parity
 
         # Generate the text-to-byte lookup tokens
-        self.TOKENS_T2B = {self.TOKENS_B2T[b]: b for b in self.TOKENS_B2T}
+        self.TOKENS_T2B = {self.TOKENS_B2T[b].upper(): b
+                           for b in self.TOKENS_B2T}
 
     def save_bytes(self, fname = None, gain = 1.0):
         """
@@ -167,7 +168,7 @@ class KCSCasioFX502P:
             line = line.strip()
             if line == "" or line[0] == '#':
                 continue
-            yield line
+            yield line.upper()
 
     def text2bytes(self, txt):
         """
