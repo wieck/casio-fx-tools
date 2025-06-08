@@ -26,7 +26,8 @@ class KCSReader:
     the default audio device.
     """
     def __init__(self, fname = None, rate = 48000, channels = 1, bits = 8,
-                 base_freq = KCS_BASE_FREQ, parity = None, gain = 1.0):
+                 base_freq = KCS_BASE_FREQ, parity = None, gain = 1.0,
+                 sinc = '1000-2600'):
         self.fname = fname
         self.framerate = rate
         self.sampwidth = bits
@@ -34,6 +35,7 @@ class KCSReader:
         self.base_freq = base_freq
         self.parity    = parity
         self.gain      = gain
+        self.sinc      = sinc
 
         if self.fname is None:
             # Reading from the default audio device via sox(1)
@@ -67,10 +69,10 @@ class KCSReader:
 
         self.scb = self._wave_file_scb(self.wavefile)
 
-    def _open_device(self, framerate = 44100, sampwidth = 1, nchannels = 1):
+    def _open_device(self, framerate = 48000, sampwidth = 1, nchannels = 1):
         cmd = ['rec', '-q', '-r', str(framerate), '-c', str(nchannels),
                '-b', str(sampwidth * 8), '-t', 'raw', '-',
-               'gain', str(self.gain)]
+               'gain', str(self.gain), 'sinc', self.sinc]
         self.soxproc = subprocess.Popen(cmd, stdout = subprocess.PIPE,
                                         text = False)
 
