@@ -48,9 +48,9 @@ def fx502p_save():
     parser.add_argument('-b', '--binary', action = 'store_true',
                         help = 'output will be binary')
     parser.add_argument('-i', '--input',
-                        help = 'use WAV file instead of sound card')
+                        help = 'use sound file instead of sound card')
     parser.add_argument('-g', '--gain',
-                        help = 'when reading from sound card add gain',
+                        help = 'apply gain to the input',
                         type = float, default = 1.0)
     parser.add_argument('output', nargs = '?',
                         help = 'write to file instead of stdout')
