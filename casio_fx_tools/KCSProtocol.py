@@ -8,8 +8,8 @@ audio to/from byte data.
 from collections import deque
 from itertools import islice
 import io
-import wave
 import subprocess
+import wave
 
 KCS_BASE_FREQ = 2400
 
@@ -42,8 +42,8 @@ class KCSReader:
             self._open_device(self.framerate, self.sampwidth,
                                   self.nchannels)
         else:
-            # Reading from a file via wave module
-            self._open_wavefile(self.fname)
+            # Reading from a file via sox(1)
+            self._open_file(self.fname)
 
     def __enter__(self):
         return self
@@ -52,22 +52,25 @@ class KCSReader:
         self.close()
 
     def close(self):
-        if self.fname is None:
-            # Terminate the sox subprocess
-            self.soxproc.kill()
-            self.soxproc.wait()
-        else:
-            # Close the wave file reader
-            self.wavefile.close()
+        # Terminate the sox subprocess
+        self.soxproc.kill()
+        self.soxproc.wait()
 
-    def _open_wavefile(self, fname):
-        self.wavefile = wave.open(fname, 'rb')
+    def _open_file(self, fname, framerate = 48000, sampwidth = 1,
+                   nchannels = 1):
+        cmd = ['sox', fname, '-q', '-r', str(framerate), '-c', str(nchannels),
+               '-b', str(sampwidth * 8), '-t', 'raw', '-',
+               'gain', str(self.gain), 'sinc', self.sinc]
+        self.soxproc = subprocess.Popen(cmd, stdout = subprocess.PIPE,
+                                        text = False)
 
-        self.framerate = self.wavefile.getframerate()
-        self.sampwidth = self.wavefile.getsampwidth()
-        self.nchannels = self.wavefile.getnchannels()
+        self.soxbufrdr = io.BufferedReader(self.soxproc.stdout)
 
-        self.scb = self._wave_file_scb(self.wavefile)
+        self.framerate = framerate
+        self.sampwidth = sampwidth
+        self.nchannels = nchannels
+
+        self.scb = self._sox_rec_scb(self.soxbufrdr)
 
     def _open_device(self, framerate = 48000, sampwidth = 1, nchannels = 1):
         cmd = ['rec', '-q', '-r', str(framerate), '-c', str(nchannels),
@@ -83,29 +86,6 @@ class KCSReader:
         self.nchannels = nchannels
 
         self.scb = self._sox_rec_scb(self.soxbufrdr)
-
-    def _wave_file_scb(self, wf):
-        """
-        Sign Change Bit stream for a wave file
-        """
-        previous = 0
-        chunk = int(self.framerate / 10)
-        chunk = int(self.framerate * 60)
-        while True:
-            # Read the file in chunks of 100ms
-            frames = wf.readframes(chunk)
-            if not frames:
-                break
-
-            # Extract the most significant bytes of the leftmost channel
-            msbytes = bytearray(frames[self.sampwidth - 1::
-                                       self.sampwidth * self.nchannels])
-            
-            # Emit a stream of sign-change bits
-            for byte in msbytes:
-                signbit = byte & 0x80
-                yield 1 if (signbit ^ previous) else 0
-                previous = signbit
 
     def _sox_rec_scb(self, dev):
         """
