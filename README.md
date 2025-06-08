@@ -22,7 +22,7 @@ variations of it.
 
 * FX-502P with FA-1 interface (most likely the FX-501P will work too)
 
-## Installation and setup
+## Installation and Requirements
 
 It is recommended to install these tools in a
 [Python Virtual Environment](https://docs.python.org/3/library/venv.html).
@@ -31,9 +31,7 @@ After creating the venv perform
 python3 ./setup.py install
 ```
 
-To save/load directly from/to a calculator connected to the sound card
-via microphone and headphone the
-[sox(1)](https://sourceforge.net/projects/sox/)
+The [sox(1)](https://sourceforge.net/projects/sox/)
 Sound eXchange program needs to be installed. This utility is available
 in all major Linux distributions and for Windows.
 
@@ -43,7 +41,7 @@ involved in this.
 
 ## FX-502P Save Programs to File
 
-The command `fx502p_save` can read a .WAV file or directly from the
+The command `fx502p_save` can read a recorded audio file or directly from the
 sound card and save the program(s) to a file or stdout. 
 ```
 $ fx502p_save -h
@@ -58,14 +56,16 @@ optional arguments:
   -h, --help            show this help message and exit
   -b, --binary          output will be binary
   -i INPUT, --input INPUT
-                        use WAV file instead of sound card
-  -g GAIN, --gain GAIN  when reading from sound card add gain
+                        use sound file instead of sound card
+  -g GAIN, --gain GAIN  apply gain to the input
 ```
 
 Without any options or arguments it will read from the sound card and
-output a text version of all programs to stdout.
+output a text version of all programs or memory registers to stdout.
+
 ```
 $ fx502p_save
+FP000
 P0:
     2 + 2 =
 ```
@@ -74,23 +74,29 @@ Providing an output file name will write to that.
 ```
 $ fx502p_save test1.cas
 $ cat test1.cas
+FP000
 P0:
     2 + 2 =
 ```
 
-The *--binary* option allows to save raw byte data representing the
+The `--binary` option allows to save raw byte data representing the
 program(s).
 ```
 $ fx502p_save -b test1.bin
 $ od -tx1 test1.bin
-0000000 00 0c 5c 0c 5e
-0000005
+0000000 00 b0 00 0c 5c 0c 5
+0000007
 ```
+
+If the `fx502p_save` program is experiencing *parity errors* it may
+be because of low recording levels. The `--gain db` option can be used
+to increase the volume.
+
 
 ## FX-502P Load Programs from File
 
 The command `fx502p_load` can read a text or binary file and produce
-the equivalend .WAV audio file or send it directly to the sound card.
+the equivalent .WAV audio file or send it directly to the sound card.
 
 ```
 $ fx502p_load -h
@@ -110,7 +116,9 @@ optional arguments:
                         when writing to sound card adjust volume```
 ```
 
-The *input* filename is mandatory. 
+If the input file is a text file it should be in a similar format as
+the example given in the `fx502p_save` above using the tokens listed
+below.
 
 
 ## FX-502P Program Tokens
@@ -402,6 +410,12 @@ The list of interpreted tokens in `KCSCasio.py` is
         0xfe:   '??fe??',
         0xff:   'EOF',
 ```
+
+
+## FX-502P Example Programs
+
+* [Annuities](examples/annuities.md): A set of programs that calculate annuities like mortgage loans.
+ 
 
 ## FX-502P Wire Protocol
 
