@@ -16,6 +16,14 @@ KCS_BASE_FREQ = 2400
 KCS_PARITY_EVEN   = 0
 KCS_PARITY_ODD    = 1
 
+class KCSException(Exception):
+    def __init__(self, msg):
+        self.msg = msg
+        super().__init__(self.msg)
+
+    def __str__(self):
+        return self.msg
+
 class KCSReader:
     """
     KCSReader
@@ -172,7 +180,7 @@ class KCSReader:
                         nbits += 1
                     if mask == 0:
                         if nbits % 2 != self.parity:
-                            raise Exception("parity error")
+                            raise KCSException("parity error")
                 # Skip the final two stop bits and refill the sample buffer 
                 sample.extend(islice(scb, 2 * frames_per_bit, 3 * frames_per_bit - 1))
                 sign_changes = sum(sample)

@@ -37,6 +37,9 @@ def fx502p_load():
         prog = fx.load_bytes(progbin, args.output, volume = args.volume)
     except KeyboardInterrupt:
         sys.exit(1)
+    except KCSException as ex:
+        print("Error:", str(ex), file = sys.stderr)
+        sys.exit(1)
 
 def fx502p_save():
     # Parse command line
@@ -58,7 +61,10 @@ def fx502p_save():
     try:
         data = fx.save_bytes(args.input, gain = args.gain)
     except KeyboardInterrupt:
-        sys.exit(0)
+        sys.exit(1)
+    except KCSException as ex:
+        print("Error:", str(ex), file = sys.stderr)
+        sys.exit(1)
 
     # Convert FX-502P binary data into requested output (text/binary) to
     # stdout or file.
@@ -122,3 +128,8 @@ def kcs_analyze():
                 sys.stdout.flush()
     except KeyboardInterrupt:
         print("")
+        sys.exit(1)
+    except KCSException as ex:
+        print("")
+        print("Error:", str(ex), file = sys.stderr)
+        sys.exit(1)

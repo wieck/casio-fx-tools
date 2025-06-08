@@ -33,7 +33,7 @@ class KCSCasioFX502P:
                        parity = self.parity, gain = gain) as kcs:
             # First wait for the lead-in
             if not kcs.wait_for_lead_in():
-                raise Exception("no FX502P lead-in")
+                raise KCSException("no FX502P lead-in")
 
             # Next wait for [0x00, 0xb0] indicating program data
             byteseq = kcs.generate_bytes()
@@ -127,7 +127,7 @@ class KCSCasioFX502P:
                     output = output + mem + ': ' + outnum + '\n'
         else:
             # Didn't recognize what this byte stream means.
-            raise Exception("unrecognized FX502P data header '{0}'", start)
+            raise KCSException("unrecognized FX502P data header '{0}'", start)
             
         return output + '\n'
 
@@ -187,7 +187,7 @@ class KCSCasioFX502P:
         header = next(lines)
         m = re.match('^(F[P ])(\d\d\d)$', header)
         if m is None:
-            raise Exception("no FX502P header in '{0}'".format(header))
+            raise KCSException("no FX502P header in '{0}'".format(header))
 
         # Handle Program text
         if m.group(1) == 'FP':
@@ -244,10 +244,10 @@ class KCSCasioFX502P:
                 data.extend(self._float2bytes(registers[reg]))
 
         else:
-            raise Exception("no FX502P header in '{0}'".format(header))
+            raise KCSException("no FX502P header in '{0}'".format(header))
 
         if e > 0:
-            raise Exception(es + "{0} error(s) parsing program text".format(e))
+            raise KCSException(es + "{0} error(s) parsing program text".format(e))
         
         return bytes(data)
         
@@ -297,7 +297,7 @@ class KCSCasioFX502P:
             m = re.match('^[BF]\d\d\d', start)
             if m is not None:
                 return start, bytes(sample)
-        raise Exception("no valid start sequence found")
+        raise KCSException("no valid start sequence found")
 
     MEMORY_SEQ = [
         'MF', 'M9', 'M8', 'M7', 'M6', 'M5',
