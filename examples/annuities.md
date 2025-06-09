@@ -22,7 +22,7 @@ Present Value.
 
 | Register | Name | Description
 | -------- | ---- | ------------
-| M1       | PV   | Present Value (usually the initial load amount) |
+| M1       | PV   | Present Value (usually the initial loan amount) |
 | M2       | FV   | Future Value (usually 0 meaning the loan is fully paid off) |
 | M3       | n    | Duration of the loan in compounding periods (usually months) |
 | M4       | i    | Interest rate in % per compounding period (divide an annual interest rate by 12 if the compounding/payment periods are monthly) |

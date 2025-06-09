@@ -1,0 +1,18 @@
+# Electricity(2)-1
+FP021
+
+P1:
+  LBL1:
+	HLT Min1 HLT Min2 HLT Min3
+	MR1 + MR2 + MR3 = Min7
+	MR1 * MR2 / MR7 = HLT
+	MR2 * MR3 / MR7 = HLT
+	MR3 * MR1 / MR7 = GOTO1
+
+P2:
+  LBL1:
+  	HLT Min4 HLT Min5 HLT Min6
+	MR4 * MR5 + MR5 * MR6 + MR6 * MR4 = Min8
+	/ MR5 = HLT
+	MR8 / MR6 = HLT
+	MR8 / MR4 = GOTO1
