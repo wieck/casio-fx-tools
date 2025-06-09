@@ -15,6 +15,7 @@ variations of it.
 * [FX-502P Save Programs to File](#fx-502p-save-programs-to-file)
 * [FX-502P Load Programs from File](#fx-502p-load-programs-from-file)
 * [FX-502P Program Tokens](#fx-502p-program-tokens)
+* [FX-502P Example Programs](#fx-502p-example-programs)
 * [FX-502P Wire Protocol](#fx-502p-wire-protocol)
 * [Credits](#credits)
 
