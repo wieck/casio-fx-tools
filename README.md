@@ -417,7 +417,7 @@ The list of interpreted tokens in `KCSCasio.py` is
 
 ### CASIO Program Library Chapter 2 - Electricity
 
-* [Electricity-1](examples/casio_program_library/electricity-1/electricity-1.md) Delta-Y Conversion
+* [Electricity-1](examples/casio_program_library/electricity-1) Delta-Y Conversion
 
 ### Other Programs
 
