@@ -414,8 +414,14 @@ The list of interpreted tokens in `KCSCasio.py` is
 
 ## FX-502P Example Programs
 
+### CASIO Program Library Chapter 2 - Electricity
+
+* [Electricity-1](examples/casio_program_library/electricity-1/electricity-1.md) Delta-Y Conversion
+
+### Other Programs
+
 * [Annuities](examples/annuities.md): A set of programs that calculate annuities like mortgage loans.
- 
+
 
 ## FX-502P Wire Protocol
 
