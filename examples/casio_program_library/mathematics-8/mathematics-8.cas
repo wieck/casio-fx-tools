@@ -1,0 +1,25 @@
+FP000
+P0:
+  	HLT Min1 HLT Min2 HLT Min3 HLT Min4 HLT MinF
+  LBL1:
+  	HLT Min5 HLT Min6
+  LBL2:
+    MR5 Min7 2 Min0
+  LBL3:
+    MR1 * MR5 X^2 * MR5 + MR2 * MR5 X^2
+	+ MR3 * MR5 + MR4 = Min9
+	MR6 M+5
+	DSZ GOTO4
+	GOTO5
+  LBL4:
+    MR9 MIN8 GOTO3
+  LBL5:
+    ( MR9 - MR8 ) / MR6 = Min9
+	MR7 - MR8 / MR9 = Min8 - MR7 = ABS
+	X>=F GOTO6
+	GOTO7
+  LBL6:
+    MR8 Min5 GOTO2
+  LBL7:
+    MR7 GOTO1
+    

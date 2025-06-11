@@ -9,7 +9,7 @@ and compounding periods (often 180 or 360 months for 15 and 30 year terms
 respectively), an interest rate (i) in percent (for the length of the periods)
 and a Payment (PMT) like the monthly combined principal and interest.
 
-The program text for `fx502p_load` is [here](annuities.cas?raw=true).
+[FX-502P Program Text](annuities.cas?raw=true).
 
 ## Memory assignment
 

@@ -122,6 +122,20 @@ the example given in the `fx502p_save` above using the tokens listed
 below.
 
 
+## FX-502P Example Programs
+
+## CASIO Program Library Chapter 1 - Mathematics
+* [Mathematics-8](examples/casio_program_library/mathematics-8/) Solving a cubic equation by the Newton method
+* [Mathematics-9](examples/casio_program_library/mathematics-9/) Solving an equation by the midpoint method
+
+## CASIO Program Library Chapter 2 - Electricity
+* [Electricity-1](examples/casio_program_library/electricity-1/) Delta-Y Conversion
+
+### Other Programs
+
+* [Annuities](examples/other_programs/annuities/): A set of programs that calculate annuities like mortgage loans.
+
+
 ## FX-502P Program Tokens
 
 The text representation of a CASIO FX-502P program is tokens
@@ -411,18 +425,6 @@ The list of interpreted tokens in `KCSCasio.py` is
         0xfe:   '??fe??',
         0xff:   'EOF',
 ```
-
-
-## FX-502P Example Programs
-
-### CASIO Program Library Chapter 2 - Electricity
-
-* [Electricity-1](examples/casio_program_library/electricity-1) Delta-Y Conversion
-
-### Other Programs
-
-* [Annuities](examples/annuities.md): A set of programs that calculate annuities like mortgage loans.
-
 
 ## FX-502P Wire Protocol
 

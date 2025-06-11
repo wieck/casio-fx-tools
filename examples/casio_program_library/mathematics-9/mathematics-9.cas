@@ -1,0 +1,13 @@
+FP000
+P0:
+    AC HLT Min1 AC HLT Min2 AC HLT MinF
+  LBL1:
+  	MR2 - MR1 = ABS X>=F GOTO2 MR3 HLT
+  LBL2:
+    ( MR1 + MR2 ) / 2 = Min3 GSB-P1
+	X>=0 GOTO3 MR3 Min1 GOTO1
+  LBL3:
+    MR3 Min2 GOTO1
+
+P1:
+	MR3 * MR3 * MR3 + MR3 * MR3 - MR3 - 1 =
