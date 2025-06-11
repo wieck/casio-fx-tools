@@ -200,6 +200,9 @@ class KCSCasioFX502P:
             for line in lines:
                 toks = line.split()
                 for tok in toks:
+                    # Ignore INV token (not really part of the bytes)
+                    if tok == 'INV':
+                        continue
                     if tok not in self.TOKENS_T2B:
                         es += "line {0}: unrecognized token '{1}'\n".format(l, tok)
                         e += 1
