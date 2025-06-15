@@ -135,6 +135,9 @@ below.
 
 * [Annuities](examples/other_programs/annuities/): A set of programs that calculate annuities like mortgage loans.
 
+### FX-502P Music
+
+* [FX-502P Music](examples/audio/): Using the Music feature.
 
 ## FX-502P Program Tokens
 
