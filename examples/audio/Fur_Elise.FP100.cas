@@ -1,0 +1,22 @@
+FP100
+P9:
+    Min9 Min18 Min9 Min18 Min9 Min6 Min8 Min7 MR5 MinF Min0 Min2 Min5 MR6 MinF
+P8:
+    GSB-P9 Min2 Min16 Min6 MR7 MinF Min2 GSB-P9 Min1 Min7 Min6
+P7:
+    . MR9 Min4 Min10 Min9 . MR8 Min3 Min9 Min8 . MR7 Min2 Min8 Min7 Min6 Min2
+    Min9 Min2 Min9 Min2 Min9 Min9 Min15 Min18 Min9 Min18 Min9 Min18 Min9 Min18
+    GSB-P9 Min2 Min16 Min6 MR7 MinF Min2 GSB-P9 Min1 Min7 Min6
+P0:
+    GSB-P8 . MR5 MinF GSB-P8 MR5 MinF Min6 Min7 Min8 GSB-P7 MR5 MinF Min6 Min7
+    Min8 GSB-P7 MR5 MinF Min7 Min7 Min7 M-7 . MR10 X<->M9 MR9 MR8 . Min19 X<->M12
+    Min12 Min11 Min10 Min9 Min8 Min7 MR17 MR5 X<->M5 X<->M4 X<->M5 X<->M17
+    M-7 Min8 Min18 . MR9 Min9 Min10 Min5 M-7 . Min8 X<->M6 X<->M7 X<->M11 X<->M4
+    X<->M11 X<->M5 X<->M11 X<->M6 X<->M11 X<->M7 X<->M11 X<->M8 X<->M11 X<->M9
+    X<->M11 X<->M14 X<->M13 X<->M12 X<->M11 X<->M10 X<->M9 X<->M8 X<->M11 X<->M10
+    X<->M8 X<->M7 X<->M11 X<->M4 X<->M11 X<->M5 X<->M11 X<->M6 X<->M11 X<->M7
+    X<->M11 X<->M8 X<->M11 X<->M9 X<->M11 X<->M14 X<->M13 X<->M12 X<->M11 X<->M10
+    X<->M9 X<->M8 X<->M11 X<->M10 X<->M8 X<->M9 X<->M10 X<->M9 X<->M18 X<->M9
+    X<->M6 X<->M9 X<->M18 X<->M9 X<->M6 X<->M9 X<->M18 . MR9 Min6 Min9 Min18
+    . MR9 Min6 Min9 Min18 Min9 Min18 Min9 Min18 GSB-P8 MR5 MinF Min6 Min7 Min8
+    GSB-P7 M+5 AC
